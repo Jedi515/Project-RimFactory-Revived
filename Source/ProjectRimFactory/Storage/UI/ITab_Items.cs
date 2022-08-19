@@ -102,6 +102,8 @@ namespace ProjectRimFactory.Storage.UI
             Widgets.ListSeparator(ref curY, frame.width, labelKey.Translate());
             curY += 5f;
 
+            
+
             // Sniper: t.Label also contains the count (Rice x20) do we want that?
             // Rider: This new search method is REALLLYYYYYY FAST
             // This is meant to stop a possible spam call of the Fuzzy Search
@@ -191,7 +193,7 @@ namespace ProjectRimFactory.Storage.UI
         // Credits to LWM Deep Storage :)
         private void DrawThingRow(ref float y, float width, Thing thing, List<Pawn> colonists)
         {
-            if (thing == null || !thing.Spawned) return; // not here, whatever happened...
+           // if (thing == null || !thing.Spawned) return; // not here, whatever happened...
 
 
             //each call to LabelCap also accesses MaxHitPoints therefor it is read here slightly diffrently;
@@ -307,9 +309,16 @@ namespace ProjectRimFactory.Storage.UI
             var item = SelectedMassStorageUnit
                 .StoredItems.Where(i => i == thing).ToList();
             if (IOPortSelected && SelectedIOPort.OutputItem(item[0]))
+            {
                 itemsToShow.Remove(thing);
+                SelectedIOPort.boundStorageUnit.StoredItems.Remove(thing);
+            }
             else if (SelectedMassStorageUnit.OutputItem(item[0]))
+            {
                 itemsToShow.Remove(thing);
+                SelectedMassStorageUnit.StoredItems.Remove(thing);
+            }
+                
         }
 
 

@@ -12,17 +12,19 @@ using Verse;
 namespace ProjectRimFactory.Storage
 {
     [StaticConstructorOnStartup]
-    public abstract class Building_MassStorageUnit : Building_Storage, IHideItem, IHideRightClickMenu,
-        IForbidPawnOutputItem, IForbidPawnInputItem ,IRenameBuilding
+    public abstract class Building_MassStorageUnit : Building, IRenameBuilding, IHaulDestination, IStoreSettingsParent
     {
         private static readonly Texture2D RenameTex = ContentFinder<Texture2D>.Get("UI/Buttons/Rename");
 
-        private readonly List<Thing> items = new List<Thing>();
+        private List<Thing> items = new List<Thing>();
+
         private List<Building_StorageUnitIOBase> ports = new List<Building_StorageUnitIOBase>();
 
         public string UniqueName { get => uniqueName; set => uniqueName = value; }
         private string uniqueName;
         public Building Building => this;
+
+        public StorageSettings settings;
 
         //Initialized at spawn
         public DefModExtension_Crate ModExtension_Crate = null; 
@@ -43,26 +45,18 @@ namespace ProjectRimFactory.Storage
 
         public virtual bool ForbidPawnInput => ForbidPawnAccess;
 
-        public override void Notify_ReceivedThing(Thing newItem)
-        {
-            base.Notify_ReceivedThing(newItem);
-            if (newItem.Position != Position) RegisterNewItem(newItem);
-            RefreshStorage();
-        }
-
-        public override void Notify_LostThing(Thing newItem)
-        {
-            base.Notify_LostThing(newItem);
-            items.Remove(newItem);
-            RefreshStorage();
-        }
-
         public virtual bool ForbidPawnOutput => ForbidPawnAccess;
 
         public virtual bool HideItems => ModExtension_Crate?.hideItems ?? false;
 
         public virtual bool HideRightClickMenus =>
             ModExtension_Crate?.hideRightClickMenus ?? false;
+
+        IntVec3 IHaulDestination.Position => this.Position;
+
+        Map IHaulDestination.Map => this.Map;
+
+        bool IStoreSettingsParent.StorageTabVisible => true;
 
         public void DeregisterPort(Building_StorageUnitIOBase port)
         {
@@ -86,17 +80,6 @@ namespace ProjectRimFactory.Storage
                 defaultLabel = "PRFRenameMassStorageUnitLabel".Translate(),
                 defaultDesc = "PRFRenameMassStorageUnitDesc".Translate()
             };
-            yield return new Command_Action
-            {
-                icon = TexUI.RotRightTex,
-                action = () =>
-                {
-                    RefreshStorage();
-                    Messages.Message("PRFReorganize_Message".Translate(), MessageTypeDefOf.NeutralEvent);
-                },
-                defaultLabel = "PRFReorganize".Translate(),
-                defaultDesc = "PRFReorganize_Desc".Translate()
-            };
         }
 
         public virtual string GetUIThingLabel()
@@ -111,11 +94,16 @@ namespace ProjectRimFactory.Storage
 
         public virtual void RegisterNewItem(Thing newItem)
         {
-            var things = Position.GetThingList(Map);
-            for (var i = 0; i < things.Count; i++)
+
+            Log.Message($"RegisterNewItem: {newItem}");
+            if (items.Contains(newItem))
             {
-                var item = things[i];
-                if (item == newItem) continue;
+                Log.Message($"dup: {newItem}");
+                return;
+            }
+            for (var i = 0; i < items.Count; i++)
+            {
+                var item = items[i];
                 if (item.def.category == ThingCategory.Item && item.CanStackWith(newItem))
                     item.TryAbsorbStack(newItem, true);
                 if (newItem.Destroyed) break;
@@ -124,12 +112,14 @@ namespace ProjectRimFactory.Storage
             //Add a new stack of a thing
             if (!newItem.Destroyed)
             {
-                if (!items.Contains(newItem))
-                    items.Add(newItem);
+                items.Add(newItem);
 
                 //What appens if its full?
-                if (CanStoreMoreItems) newItem.Position = Position;
-                if (!newItem.Spawned) newItem.SpawnSetup(Map, false);
+                if (CanStoreMoreItems)
+                {
+                    newItem.Position = Position;
+                }
+                if (newItem.Spawned) newItem.DeSpawn();
             }
         }
 
@@ -137,7 +127,9 @@ namespace ProjectRimFactory.Storage
         {
             base.ExposeData();
             Scribe_Collections.Look(ref ports, "ports", LookMode.Reference);
+            Scribe_Collections.Look(ref items, "items", LookMode.Deep);
             Scribe_Values.Look(ref uniqueName, "uniqueName");
+            Scribe_Deep.Look(ref settings, "settings", this);
             ModExtension_Crate ??= def.GetModExtension<DefModExtension_Crate>();
         }
 
@@ -159,26 +151,19 @@ namespace ProjectRimFactory.Storage
                     thingsToSplurge[i].DeSpawn();
                     GenPlace.TryPlaceThing(thingsToSplurge[i], Position, Map, ThingPlaceMode.Near);
                 }
-            Map.GetComponent<PRFMapComponent>().RemoveIHideRightClickMenu(this);
-            foreach (var cell in this.OccupiedRect().Cells)
-            {
-                Map.GetComponent<PRFMapComponent>().DeRegisterIHideItemPos(cell, this);
-                Map.GetComponent<PRFMapComponent>().DeRegisterIForbidPawnOutputItem(cell, this);
-            }
             base.DeSpawn(mode);
         }
 
         public override void SpawnSetup(Map map, bool respawningAfterLoad)
         {
             base.SpawnSetup(map, respawningAfterLoad);
-            Map.GetComponent<PRFMapComponent>().AddIHideRightClickMenu(this);
-            foreach (var cell in this.OccupiedRect().Cells)
-            {
-                map.GetComponent<PRFMapComponent>().RegisterIHideItemPos(cell, this);
-                map.GetComponent<PRFMapComponent>().RegisterIForbidPawnOutputItem(cell, this);
-            }
             ModExtension_Crate ??= def.GetModExtension<DefModExtension_Crate>();
-            RefreshStorage();
+
+            Log.Message("----------------");
+            foreach (var item in this.StoredItems)
+            {
+                Log.Message(item.ToString());
+            }
 
         }
 
@@ -195,45 +180,6 @@ namespace ProjectRimFactory.Storage
             return GenPlace.TryPlaceThing(item.SplitOff(item.stackCount), outputCell, Map, ThingPlaceMode.Near);
         }
 
-        public virtual void RefreshStorage()
-        {
-            items.Clear();
-            if (!Spawned) return; // don't want to try getting lists of things when not on a map (see 155)
-            foreach (var cell in AllSlotCells())
-            {
-                var things = new List<Thing>(cell.GetThingList(Map));
-                for (var i = 0; i < things.Count; i++)
-                {
-                    var item = things[i];
-                    if (item.def.category == ThingCategory.Item)
-                    {
-                        if (cell != Position)
-                        {
-                            RegisterNewItem(item);
-                        }
-                        else
-                        {
-                            if (!items.Contains(item))
-                                items.Add(item);
-                        }
-                    }
-                }
-            }
-
-            // Even though notifying I/O ports that the contents inside the storage unit have changed seems like a good idea, it can cause recursion issues.
-            //for (int i = 0; i < ports.Count; i++)
-            //{
-            //    if (ports[i] == null)
-            //    {
-            //        ports.RemoveAt(i);
-            //        i--;
-            //    }
-            //    else
-            //    {
-            //        ports[i].Notify_NeedRefresh();
-            //    }
-            //}
-        }
         //-----------    For compatibility with Pick Up And Haul:    -----------
         //                  (not used internally in any way)
         // true if can store, capacity is how many can store (more than one stack possible)
@@ -280,13 +226,42 @@ namespace ProjectRimFactory.Storage
             }
             return capacity > 0;
         }
+
         // ...The above? I think?  But without needing to know how many
         public bool StackableAt(Thing thing, IntVec3 cell, Map map)
         {
             return CapacityAt(thing, cell, map, out _);
         }
 
+        public bool Accepts(Thing t)
+        {
+            return settings.AllowedToAccept(t);
+        }
 
+        StorageSettings IStoreSettingsParent.GetStoreSettings()
+        {
+            return settings;
+        }
+
+        StorageSettings IStoreSettingsParent.GetParentStoreSettings()
+        {
+            StorageSettings fixedStorageSettings = def.building.fixedStorageSettings;
+            if (fixedStorageSettings != null)
+            {
+                return fixedStorageSettings;
+            }
+            return StorageSettings.EverStorableFixedSettings();
+        }
+
+        public override void PostMake()
+        {
+            base.PostMake();
+            settings = new StorageSettings(this);
+            if (def.building.defaultStorageSettings != null)
+            {
+                settings.CopyFrom(def.building.defaultStorageSettings);
+            }
+        }
 
     }
 }

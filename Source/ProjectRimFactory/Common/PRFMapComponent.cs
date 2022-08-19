@@ -39,29 +39,7 @@ namespace ProjectRimFactory.Common
 
         }
 
-        public void RegisterIHideItemPos(IntVec3 pos, HarmonyPatches.IHideItem hideItem)
-        {
-            if(hideItemLocations.ContainsKey(pos))
-            {
-                hideItemLocations[pos].Add(hideItem);
-            }
-            else
-            {
-                hideItemLocations.Add(pos,new List<HarmonyPatches.IHideItem>() { hideItem});
-            }
-        }
-        public void DeRegisterIHideItemPos(IntVec3 pos, HarmonyPatches.IHideItem hideItem)
-        {
-            if (hideItemLocations[pos].Count <= 1)
-            {
-                hideItemLocations.Remove(pos);
-            }
-            else
-            {
-                hideItemLocations[pos].Remove(hideItem);
-            }
-            
-        }
+
         public void RegisterIForbidPawnOutputItem(IntVec3 pos, HarmonyPatches.IForbidPawnOutputItem ForbidPawnOutput)
         {
             if (ForbidPawnOutputItemLocations.ContainsKey(pos))
@@ -128,21 +106,7 @@ namespace ProjectRimFactory.Common
         {
             this.tickers.Remove(ticker);
         }
-        public void AddIHideRightClickMenu(Building b)
-        {
-            foreach (var v in b.OccupiedRect()) {
-                iHideRightMenus.Add(v);
-            }
-        }
-        public void RemoveIHideRightClickMenu(Building b)
-        {
-            foreach (var v in b.OccupiedRect()) {
-                iHideRightMenus.Remove(v);
-                foreach (var t in map.thingGrid.ThingsListAt(v)) {
-                    if (t != b && t is IHideRightClickMenu) iHideRightMenus.Add(v);
-                }
-            }
-        }
+
     }
 
     public interface ITicker

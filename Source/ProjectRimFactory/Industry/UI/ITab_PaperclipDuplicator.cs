@@ -114,7 +114,7 @@ namespace ProjectRimFactory.Industry.UI
                                 for (int i = 0; i < output.Count; i++)
                                 {
                                     GenPlace.TryPlaceThing(output[i], SelBuilding.Position, SelBuilding.Map, ThingPlaceMode.Direct);
-                                    SelBuilding.boundStorageUnit.Notify_ReceivedThing(output[i]);
+                                    SelBuilding.boundStorageUnit.RegisterNewItem(output[i]);
                                 }
                                 SelBuilding.WithdrawPaperclips(result);
                                 Messages.Message("SuccessfullyWithdrawnPaperclips".Translate(result), MessageTypeDefOf.PositiveEvent);

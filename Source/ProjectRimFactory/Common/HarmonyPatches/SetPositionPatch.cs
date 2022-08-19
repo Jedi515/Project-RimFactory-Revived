@@ -20,9 +20,9 @@ namespace ProjectRimFactory.Common.HarmonyPatches
                 __state = pos.GetFirst<Building_MassStorageUnit>(__instance.Map);
             }
         }
-        public static void Postfix(Thing __instance, Building_MassStorageUnit __state)
+      /*  public static void Postfix(Thing __instance, Building_MassStorageUnit __state)
         {
             __state?.Notify_LostThing(__instance);
-        }
+        }*/
     }
 }

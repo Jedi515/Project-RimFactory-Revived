@@ -29,16 +29,6 @@ namespace ProjectRimFactory.Storage
 
         private bool pawnAccess = true;
 
-        public override void Notify_ReceivedThing(Thing newItem)
-        {
-            base.Notify_ReceivedThing(newItem);
-            UpdatePowerConsumption();
-        }
-        public override void Notify_LostThing(Thing newItem)
-        {
-            base.Notify_LostThing(newItem);
-            UpdatePowerConsumption();
-        }
         public void UpdatePowerConsumption()
         {
             compPowerTrader ??= GetComp<CompPowerTrader>();
@@ -50,19 +40,6 @@ namespace ProjectRimFactory.Storage
             base.ExposeData();
             Scribe_Values.Look(ref pawnAccess, "pawnAccess", true);
             compPowerTrader ??= GetComp<CompPowerTrader>();
-        }
-
-        protected override void ReceiveCompSignal(string signal)
-        {
-            base.ReceiveCompSignal(signal);
-            switch (signal)
-            {
-                case "PowerTurnedOn":
-                    RefreshStorage();
-                    break;
-                default:
-                    break;
-            }
         }
 
         public override void Tick()
@@ -78,7 +55,6 @@ namespace ProjectRimFactory.Storage
         {
             base.PostMapInit();
             compPowerTrader ??= GetComp<CompPowerTrader>();
-            this.RefreshStorage();
         }
 
         public override IEnumerable<Gizmo> GetGizmos()

@@ -238,14 +238,7 @@ namespace ProjectRimFactory.Storage
                 Thing item = WorkPosition.GetFirstItem(Map);
                 if (mode == StorageIOMode.Input && item != null && boundStorageUnit != null && boundStorageUnit.settings.AllowedToAccept(item) && boundStorageUnit.CanReceiveIO && boundStorageUnit.CanStoreMoreItems)
                 {
-                    foreach (IntVec3 cell in boundStorageUnit.AllSlotCells())
-                    {
-                        if (cell.GetFirstItem(Map) == null)
-                        {
-                            boundStorageUnit.RegisterNewItem(item);
-                            break;
-                        }
-                    }
+                    boundStorageUnit.RegisterNewItem(item);
                 }
             }
         }
@@ -475,14 +468,7 @@ namespace ProjectRimFactory.Storage
                 Thing item = Position.GetFirstItem(Map);
                 if (mode == StorageIOMode.Input && item != null && boundStorageUnit != null && boundStorageUnit.settings.AllowedToAccept(item) && boundStorageUnit.CanReceiveIO && boundStorageUnit.CanStoreMoreItems)
                 {
-                    foreach (IntVec3 cell in boundStorageUnit.AllSlotCells())
-                    {
-                        if (cell.GetFirstItem(Map) == null)
-                        {
-                            boundStorageUnit.RegisterNewItem(item);
-                            break;
-                        }
-                    }
+                    boundStorageUnit.RegisterNewItem(item);
                 }
             }
         }

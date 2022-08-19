@@ -30,7 +30,7 @@ namespace ProjectRimFactory.Storage
         {
             
             if (base.Accepts(newThing)){
-                Notify_ReceivedThing(newThing);
+                //Notify_ReceivedThing(newThing);
                 return true;
             }
             else
