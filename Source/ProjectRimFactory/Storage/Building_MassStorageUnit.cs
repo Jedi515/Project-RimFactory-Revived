@@ -29,11 +29,13 @@ namespace ProjectRimFactory.Storage
 
 
     [StaticConstructorOnStartup]
-    public abstract class Building_MassStorageUnit : Building, IRenameBuilding, IHaulDestination, IStoreSettingsParent, ILinkableStorageParent
+    public abstract class Building_MassStorageUnit : Building, IRenameBuilding, IHaulDestination, IStoreSettingsParent, ILinkableStorageParent, IThingHolder
     {
         private static readonly Texture2D RenameTex = ContentFinder<Texture2D>.Get("UI/Buttons/Rename");
 
-        private List<Thing> items = new List<Thing>();
+        private ThingOwner<Thing> thingOwner = new ThingOwner<Thing>();
+
+        private List<Thing> items => thingOwner.InnerListForReading;
 
         private List<Building_StorageUnitIOBase> ports = new List<Building_StorageUnitIOBase>();
 
@@ -146,7 +148,7 @@ namespace ProjectRimFactory.Storage
         {
             base.ExposeData();
             Scribe_Collections.Look(ref ports, "ports", LookMode.Reference);
-            Scribe_Collections.Look(ref items, "items", LookMode.Deep);
+            Scribe_Deep.Look(ref this.thingOwner, "thingowner");
             Scribe_Values.Look(ref uniqueName, "uniqueName");
             Scribe_Deep.Look(ref settings, "settings", this);
             ModExtension_Crate ??= def.GetModExtension<DefModExtension_Crate>();
@@ -289,11 +291,8 @@ namespace ProjectRimFactory.Storage
 
         public void HandleMoveItem(Thing item)
         {
-            if (!items.Contains(item))
-            {
-                Log.Error($"PRF HandleMoveItem Called for {item} but this {this} does not store that...");
-            }
-            else
+            //With the use of thingOwner this check might be redundent
+            if (items.Contains(item))
             {
                 items.Remove(item);
             }
@@ -302,6 +301,16 @@ namespace ProjectRimFactory.Storage
         public bool CanReciveThing(Thing item)
         {
             return settings.AllowedToAccept(item) && CanReceiveIO && CanStoreMoreItems;
+        }
+
+        public void GetChildHolders(List<IThingHolder> outChildren)
+        {
+
+        }
+
+        public ThingOwner GetDirectlyHeldThings()
+        {
+            return thingOwner;
         }
     }
 }
