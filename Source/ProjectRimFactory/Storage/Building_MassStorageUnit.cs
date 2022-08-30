@@ -11,8 +11,25 @@ using Verse;
 
 namespace ProjectRimFactory.Storage
 {
+    public interface ILinkableStorageParent
+    {
+        public List<Thing> StoredItems { get; }
+
+        public bool AdvancedIOAllowed { get; }
+
+        public void HandleNewItem(Thing item);
+
+        public void HandleMoveItem(Thing item);
+
+        public bool CanReciveThing(Thing item);
+
+    }
+
+
+
+
     [StaticConstructorOnStartup]
-    public abstract class Building_MassStorageUnit : Building, IRenameBuilding, IHaulDestination, IStoreSettingsParent
+    public abstract class Building_MassStorageUnit : Building, IRenameBuilding, IHaulDestination, IStoreSettingsParent, ILinkableStorageParent
     {
         private static readonly Texture2D RenameTex = ContentFinder<Texture2D>.Get("UI/Buttons/Rename");
 
@@ -57,6 +74,8 @@ namespace ProjectRimFactory.Storage
         Map IHaulDestination.Map => this.Map;
 
         bool IStoreSettingsParent.StorageTabVisible => true;
+
+        public bool AdvancedIOAllowed => throw new System.NotImplementedException();
 
         public void DeregisterPort(Building_StorageUnitIOBase port)
         {
@@ -263,5 +282,26 @@ namespace ProjectRimFactory.Storage
             }
         }
 
+        public void HandleNewItem(Thing item)
+        {
+            RegisterNewItem(item);
+        }
+
+        public void HandleMoveItem(Thing item)
+        {
+            if (!items.Contains(item))
+            {
+                Log.Error($"PRF HandleMoveItem Called for {item} but this {this} does not store that...");
+            }
+            else
+            {
+                items.Remove(item);
+            }
+        }
+
+        public bool CanReciveThing(Thing item)
+        {
+            return settings.AllowedToAccept(item) && CanReceiveIO && CanStoreMoreItems;
+        }
     }
 }

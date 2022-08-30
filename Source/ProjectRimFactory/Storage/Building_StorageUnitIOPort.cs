@@ -236,9 +236,9 @@ namespace ProjectRimFactory.Storage
             if (powerComp.PowerOn)
             {
                 Thing item = WorkPosition.GetFirstItem(Map);
-                if (mode == StorageIOMode.Input && item != null && boundStorageUnit != null && boundStorageUnit.settings.AllowedToAccept(item) && boundStorageUnit.CanReceiveIO && boundStorageUnit.CanStoreMoreItems)
+                if (mode == StorageIOMode.Input && item != null && (boundStorageUnit?.CanReciveThing(item) ?? false))
                 {
-                    boundStorageUnit.RegisterNewItem(item);
+                    boundStorageUnit.HandleNewItem(item);
                 }
             }
         }
@@ -287,7 +287,9 @@ namespace ProjectRimFactory.Storage
                                         int count = Math.Min(item.stackCount, OutputSettings.CountNeededToReachMax(currentItem.stackCount, currentItem.def.stackLimit));
                                         if (count > 0)
                                         {
-                                            currentItem.TryAbsorbStack(item.SplitOff(count), true);
+                                            var ThingToRemove = item.SplitOff(count);
+                                            if (item.stackCount <= 0) boundStorageUnit.HandleMoveItem(item);
+                                            currentItem.TryAbsorbStack(ThingToRemove, true);
                                         }
                                     }
                                 }
@@ -296,7 +298,9 @@ namespace ProjectRimFactory.Storage
                                     int count = OutputSettings.CountNeededToReachMax(0, item.stackCount);
                                     if (count > 0)
                                     {
-                                        currentItem = GenSpawn.Spawn(item.SplitOff(count), WorkPosition, Map);
+                                        var ThingToRemove = item.SplitOff(count);
+                                        if (item.stackCount <= 0) boundStorageUnit.HandleMoveItem(item);
+                                        currentItem = GenSpawn.Spawn(ThingToRemove, WorkPosition, Map);
                                     }
                                 }
                                 if (currentItem != null && !OutputSettings.SatisfiesMax(currentItem.stackCount, currentItem.def.stackLimit))
@@ -310,7 +314,7 @@ namespace ProjectRimFactory.Storage
                     if (currentItem != null && (!settings.AllowedToAccept(currentItem) || !OutputSettings.SatisfiesMin(currentItem.stackCount)) && boundStorageUnit.settings.AllowedToAccept(currentItem))
                     {
                         currentItem.SetForbidden(false, false);
-                        boundStorageUnit.RegisterNewItem(currentItem);
+                        boundStorageUnit.HandleNewItem(currentItem);
                     }
                     //Transfer the diffrence back if it is too much
                     if (currentItem != null && (!OutputSettings.SatisfiesMax(currentItem.stackCount, currentItem.def.stackLimit) && boundStorageUnit.settings.AllowedToAccept(currentItem)))
@@ -320,7 +324,7 @@ namespace ProjectRimFactory.Storage
                         {
                             Thing returnThing = currentItem.SplitOff(splitCount);
                             returnThing.SetForbidden(false, false);
-                            boundStorageUnit.RegisterNewItem(returnThing);
+                            boundStorageUnit.HandleNewItem(returnThing);
                         }
                     }
                     if (currentItem != null)
@@ -466,9 +470,9 @@ namespace ProjectRimFactory.Storage
             if (powerComp.PowerOn)
             {
                 Thing item = Position.GetFirstItem(Map);
-                if (mode == StorageIOMode.Input && item != null && boundStorageUnit != null && boundStorageUnit.settings.AllowedToAccept(item) && boundStorageUnit.CanReceiveIO && boundStorageUnit.CanStoreMoreItems)
+                if (mode == StorageIOMode.Input && item != null && boundStorageUnit != null && boundStorageUnit.CanReciveThing(item))
                 {
-                    boundStorageUnit.RegisterNewItem(item);
+                    boundStorageUnit.HandleNewItem(item);
                 }
             }
         }
@@ -549,6 +553,7 @@ namespace ProjectRimFactory.Storage
                                             //For SplitOff "MakeThing" is expensive
                                             //For TryAbsorbStack "Destroy" is expensive
                                             AbsorbAmmount(ref currentItem, ref Mything, count);
+                                            if (Mything.stackCount <= 0) boundStorageUnit.HandleMoveItem(Mything);
                                         }
                                     }
                                 }
@@ -559,7 +564,9 @@ namespace ProjectRimFactory.Storage
                                     {
                                         //Nothing on the IO Port - grab thing from storage and place it on the port
                                         //For SplitOff "MakeThing" is expensive
-                                        currentItem = GenSpawn.Spawn(item.SplitOff(count), Position, Map);
+                                        var ThingToRemove = item.SplitOff(count);
+                                        if (item.stackCount <= 0 || ThingToRemove == item) boundStorageUnit.HandleMoveItem(item);
+                                        currentItem = GenSpawn.Spawn(ThingToRemove, Position, Map);
                                     }
                                 }
                                 if (currentItem != null && !OutputSettings.SatisfiesMax(currentItem.stackCount, currentItem.def.stackLimit))
@@ -573,7 +580,7 @@ namespace ProjectRimFactory.Storage
                     if (currentItem != null && (!settings.AllowedToAccept(currentItem) || !OutputSettings.SatisfiesMin(currentItem.stackCount)) && boundStorageUnit.settings.AllowedToAccept(currentItem))
                     {
                         currentItem.SetForbidden(false, false);
-                        boundStorageUnit.RegisterNewItem(currentItem);
+                        boundStorageUnit.HandleNewItem(currentItem);
                     }
                     //Transfer the diffrence back if it is too much
                     if (currentItem != null && (!OutputSettings.SatisfiesMax(currentItem.stackCount, currentItem.def.stackLimit) && boundStorageUnit.settings.AllowedToAccept(currentItem)))
@@ -583,7 +590,7 @@ namespace ProjectRimFactory.Storage
                         {
                             Thing returnThing = currentItem.SplitOff(splitCount);
                             returnThing.SetForbidden(false, false);
-                            boundStorageUnit.RegisterNewItem(returnThing);
+                            boundStorageUnit.HandleNewItem(returnThing);
                         }
                     }
                     if (currentItem != null)
