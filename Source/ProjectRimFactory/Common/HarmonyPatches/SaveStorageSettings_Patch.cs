@@ -12,6 +12,9 @@ using ProjectRimFactory.SAL3.Things.Assemblers;
 
 namespace ProjectRimFactory.Common.HarmonyPatches
 {
+    /// <summary>
+    /// Adds support for "[KV] Save Storage, Outfit, Crafting, Drug, & Operation Settings"
+    /// </summary>
     class SaveStorageSettings_Patch
     {
 		public static Type Patch_Building_Gizmos;

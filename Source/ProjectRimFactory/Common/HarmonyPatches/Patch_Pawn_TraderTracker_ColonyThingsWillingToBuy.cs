@@ -10,6 +10,10 @@ using Verse;
 
 namespace ProjectRimFactory.Common.HarmonyPatches
 {
+    /// <summary>
+    /// Patch that allows items stored in Cold Storage to be Traded locally
+    /// This Patch adds the Items in Cold Storage to the List of Items for Trade
+    /// </summary>
     [HarmonyPatch(typeof(Pawn_TraderTracker), "ColonyThingsWillingToBuy")]
     class Patch_Pawn_TraderTracker_ColonyThingsWillingToBuy
     {

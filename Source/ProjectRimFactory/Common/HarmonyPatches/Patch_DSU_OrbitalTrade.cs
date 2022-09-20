@@ -12,7 +12,9 @@ using System.Reflection;
 
 namespace ProjectRimFactory.Common.HarmonyPatches
 {
-    //This patch allows Dsu's to Act as a trade beachon
+    /// <summary>
+    /// This patch allows DSU's to Act as a TradeBeacon for all contained Items
+    /// </summary>
     [HarmonyPatch(typeof(TradeUtility), "AllLaunchableThingsForTrade")]
     class Patch_TradeUtility_AllLaunchableThingsForTrade
     {
@@ -29,8 +31,10 @@ namespace ProjectRimFactory.Common.HarmonyPatches
         }
     }
 
-    //This Patch Allows the player to start an orvital Trade without a Trade beacon but with a DSU.
-    //Without this patch a player would need a dummy beacon to use Patch_DSU_OrbitalTrade
+    /// <summary>
+    /// This Patch Allows the player to start an orbital Trade without a TradeBeacon but with a DSU.
+    /// Without this patch a player would need a dummy beacon to use Patch_DSU_OrbitalTrade
+    /// </summary>
     [HarmonyPatch]
      public static class Patch_PassingShip_c__DisplayClass24_0
     {

@@ -9,6 +9,11 @@ using RimWorld;
 
 namespace ProjectRimFactory.Common.HarmonyPatches
 {
+	/// <summary>
+	/// Allows the Advanced IO Port to be used for Hauling to Transporters
+	/// 
+	/// SOS2, SRTS, Transport Pod, ...
+	/// </summary>
     [HarmonyPatch(typeof(JobDriver_HaulToTransporter), "Notify_Starting")]
     class Patch_JobDriver_HaulToTransporter_Notify_Starting
     {

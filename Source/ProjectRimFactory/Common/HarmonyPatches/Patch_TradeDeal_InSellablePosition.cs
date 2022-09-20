@@ -12,7 +12,11 @@ using System.Reflection;
 
 namespace ProjectRimFactory.Common.HarmonyPatches
 {
-
+    /// <summary>
+    /// Patch that allows items stored in Cold Storage to be Traded locally
+    /// This Patch marks the items as reachable by the trader
+    /// Even if no Path exists (no negative side effects)
+    /// </summary>
     [HarmonyPatch(typeof(TradeDeal), "InSellablePosition")]
     class Patch_TradeDeal_InSellablePosition
     {

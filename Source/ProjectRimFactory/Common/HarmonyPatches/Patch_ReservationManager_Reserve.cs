@@ -12,9 +12,14 @@ using Verse.AI;
 
 namespace ProjectRimFactory.Common.HarmonyPatches
 {
-
+    /// <summary>
+    /// Destructive prefix for Reserving IO Inputs
+    /// This allows multiple pawns to use the Port at the same time
+    /// 
+    /// Might cause issues in the edge case where to many items are moved to the Port
+    /// </summary>
     [HarmonyPatch(typeof(Verse.AI.ReservationManager), "Reserve")]
-    class Patch_Reservation_Reservation_IO
+    class Patch_ReservationManager_Reserve
     {
         static bool Prefix(Pawn claimant, Job job, LocalTargetInfo target ,ref bool __result , Map ___map)
         {
@@ -26,14 +31,8 @@ namespace ProjectRimFactory.Common.HarmonyPatches
                     __result = true;
                     return false;
                 }
-
-
-               
             }
-
             return true;
-
-
         }
     }
 }

@@ -10,9 +10,11 @@ using HarmonyLib;
 
 namespace ProjectRimFactory.Common.HarmonyPatches
 {
-    //Used for Lite Mode to remove Scenarios (#549)
+    /// <summary>
+    /// Used for Lite Mode to remove Scenarios (#549)
+    /// </summary>
     [HarmonyPatch(typeof(Page_SelectScenario), "PreOpen")]
-    class PatchPage_SelectScenarioPreOpen
+    class Patch_Page_SelectScenario_PreOpen
     {
         static bool Prefix()
         {

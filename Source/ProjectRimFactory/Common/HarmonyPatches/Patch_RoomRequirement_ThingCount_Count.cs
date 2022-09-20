@@ -10,8 +10,11 @@ using Verse;
 
 namespace ProjectRimFactory.Common.HarmonyPatches
 {
+    /// <summary>
+    /// This Patch make the DroneColumn to count for the Royalty Room requirements
+    /// </summary>
     [HarmonyPatch(typeof(RoomRequirement_ThingCount), "Count")]
-    class Patch_DroneColumn_Royalty
+    class Patch_RoomRequirement_ThingCount_Count
     {
         static void Postfix(Room r, ref int __result , RoomRequirement_ThingCount __instance )
         {

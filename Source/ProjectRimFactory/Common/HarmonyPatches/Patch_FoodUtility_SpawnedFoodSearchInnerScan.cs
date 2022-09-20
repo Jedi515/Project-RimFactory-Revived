@@ -11,6 +11,9 @@ using System.Reflection.Emit;
 
 namespace ProjectRimFactory.Common.HarmonyPatches
 {
+	/// <summary>
+	/// Patch allows the Advanced IO Port to be used for the search for Food
+	/// </summary>
     [HarmonyPatch(typeof(FoodUtility), "SpawnedFoodSearchInnerScan")]
 	class Patch_FoodUtility_SpawnedFoodSearchInnerScan
 	{

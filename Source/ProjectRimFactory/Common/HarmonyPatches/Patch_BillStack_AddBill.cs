@@ -10,7 +10,9 @@ using ProjectRimFactory.SAL3.Things.Assemblers;
 
 namespace ProjectRimFactory.Common.HarmonyPatches
 {
-    //This Patch ensures that Assemblers using the Recipie DB only allow Recipies to be imported that are available to them
+    /// <summary>
+    /// This Patch ensures that Assemblers using the Recipie DB only allow Recipies to be imported that are available to them
+    /// </summary>
     [HarmonyPatch(typeof(BillStack), "AddBill")]
     class Patch_BillStack_AddBill
     {

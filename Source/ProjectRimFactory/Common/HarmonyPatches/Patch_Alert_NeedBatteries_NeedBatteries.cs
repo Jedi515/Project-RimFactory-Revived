@@ -11,9 +11,11 @@ using ProjectRimFactory.Industry;
 
 namespace ProjectRimFactory.Common.HarmonyPatches
 {
-
+    /// <summary>
+    /// Makes Building_CustomBattery and Building_HexCapacitor count for the NeedBatteries Alert
+    /// </summary>
     [HarmonyPatch(typeof(Alert_NeedBatteries), "NeedBatteries")]
-    class Alert_NeedBatteries_NeedBatteries_Patch
+    class Patch_Alert_NeedBatteries_NeedBatteries
     {
         static void Postfix(Alert_NeedBatteries __instance, Map map, ref bool __result)
         {

@@ -9,7 +9,13 @@ using Verse.AI;
 
 namespace ProjectRimFactory.Common.HarmonyPatches
 {
-    //Managed by ConditionalPatchHelper.Update_Patch_Reachability_CanReach
+    /// <summary>
+    /// Patch for Advanced IO Ports that allows Pawns to dynamically get items form a DSU even if they have no path to the DSU itself
+    /// As long as they can Path to a Connected Advanced IO Port
+    /// 
+    /// Managed by ConditionalPatchHelper.Update_Patch_Reachability_CanReach
+    /// (Toggle in Settings)
+    /// </summary>
     class Patch_Reachability_CanReach
     {
         public static bool Prefix(IntVec3 start, LocalTargetInfo dest, PathEndMode peMode, TraverseParms traverseParams ,out bool __result,Map ___map, Reachability __instance)

@@ -14,7 +14,6 @@ namespace ProjectRimFactory.Common.HarmonyPatches
 	/// <summary>
 	/// Patch for the Building_AdvancedStorageUnitIOPort
 	/// Pawns starting Jobs check the IO Port for Items
-	/// This affects mostly Bills on Workbenches
 	/// </summary>
 	[HarmonyPatch(typeof(Verse.AI.Pawn_JobTracker), "StartJob")]
     class Patch_Pawn_JobTracker_StartJob

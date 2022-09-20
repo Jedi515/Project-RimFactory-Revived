@@ -10,47 +10,11 @@ using System.Threading.Tasks;
 
 namespace ProjectRimFactory.Common.HarmonyPatches
 {
-    
-    public interface IAssemblerQueue
-    {
-        Map Map { get; }
-        List<Thing> GetThingQueue();
-    }
-
-
-    //Art & maybe other things too need a seperate patch
-    [HarmonyPatch(typeof(RecipeWorkerCounter), "CountProducts")]
-    class Patch_CountProducts_AssemblerQueue
-    {
-        
-        static void Postfix(RecipeWorkerCounter __instance,ref int __result, Bill_Production bill)
-        {
-            if (bill.includeFromZone == null) {
-                int i = 0;
-                ThingDef targetDef = __instance.recipe.products[0].thingDef;
-                PRFGameComponent gamecomp = Current.Game.GetComponent<PRFGameComponent>();
-
-                for (i = 0; i < gamecomp.AssemblerQueue.Count; i++)
-                {
-                    //Don't count Recorces of other maps
-                    if (bill.Map != gamecomp.AssemblerQueue[i].Map) continue;
-                    foreach (Thing heldThing in gamecomp.AssemblerQueue[i].GetThingQueue())
-                    {
-                        Thing innerIfMinified = heldThing.GetInnerIfMinified();
-                        if (innerIfMinified.def == targetDef)
-                        {
-                            __result += innerIfMinified.stackCount;
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-
-
+    /// <summary>
+    /// Updates the ResourceCounter (top left on GUI) with Items in the AssemblerQueue
+    /// </summary>
     [HarmonyPatch(typeof(ResourceCounter), "UpdateResourceCounts")]
-    class Patch_UpdateResourceCounts_AssemblerQueue
+    class Patch_ResourceCounter_UpdateResourceCounts
     {
 
         static void Postfix(ResourceCounter __instance, Dictionary<ThingDef, int> ___countedAmounts, Map ___map )
@@ -59,7 +23,7 @@ namespace ProjectRimFactory.Common.HarmonyPatches
             PRFGameComponent gamecomp = Current.Game.GetComponent<PRFGameComponent>();
             for (i = 0; i < gamecomp.AssemblerQueue.Count; i++)
             {
-                //Don't count Recorces of other maps
+                //Don't count Resources of other maps
                 if (gamecomp.AssemblerQueue[i].Map != ___map) continue;
 
                 foreach (Thing heldThing in gamecomp.AssemblerQueue[i].GetThingQueue())
@@ -80,8 +44,4 @@ namespace ProjectRimFactory.Common.HarmonyPatches
             }
         }
     }
-
-
-
-
 }

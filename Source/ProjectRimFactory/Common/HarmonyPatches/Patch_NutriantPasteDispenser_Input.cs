@@ -15,9 +15,11 @@ namespace ProjectRimFactory.Common.HarmonyPatches
         Thing NPDI_Item { get; }
     }
 
-
+    /// <summary>
+    /// Patch that makes items stored in Buildings that implement INutrientPasteDispenserInput accessible to the NutrientPasteDispenser
+    /// </summary>
     [HarmonyPatch(typeof(Building_NutrientPasteDispenser), "FindFeedInAnyHopper")]
-    class Patch_NutriantPasteDispenser_Input
+    class Patch_Building_NutrientPasteDispenser_FindFeedInAnyHopper
     {
 
         static void Postfix(Building_NutrientPasteDispenser __instance, ref Thing __result)
@@ -43,21 +45,27 @@ namespace ProjectRimFactory.Common.HarmonyPatches
 
     }
 
-    //HasEnoughFeedstockInHoppers
+    /// <summary>
+    /// Patch to check if Enough items are in range for the NutrientPasteDispenser to dispense a meal
+    /// Also adds support for RrimFrige (counting items from RrimFrige and our stuff)
+    /// 
+    /// If other Mods also support inputs to the NutrientPasteDispenser we need to manually expand that patch for them as well
+    /// This method should be changed in the base game for better compatibility...
+    /// 
+    /// Sadly with the current vanilla implementation adding support between mods is difficult.
+    /// Each mod needs to patch this but cant build on the progress of the other one.
+    /// 
+    /// If for example Rimfridge supplies 50% of the nutrients then we will never know about it
+    /// If we want to support the input of other mods we need a patch for them.
+    /// </summary>
     [HarmonyPatch(typeof(Building_NutrientPasteDispenser), "HasEnoughFeedstockInHoppers")]
-    class Patch_HasEnoughFeedstockInHoppers
+    class Patch_Building_NutrientPasteDispenser_HasEnoughFeedstockInHoppers
     {
         static void Postfix(Building_NutrientPasteDispenser __instance, ref bool __result) 
         {
-            //Sadly witth the current valilla implementation adding support between mods is difficult.
-            //Each mod needs to patch this but cant build on the progress of the other one.
-            //
-            //If for example Rimfrige supplies 50% of the nutriants then we will never know about it
-            //If we want to support the input of other mods we need a patch for them.
-
             if (__result == false)
             {
-                //Support for Rimfrige
+                //Support for Rimfridge
                 object rimFridgeCache = null;
                 if (ProjectRimFactory_ModComponent.ModSupport_RrimFrige_Dispenser)
                 {
@@ -87,7 +95,7 @@ namespace ProjectRimFactory.Common.HarmonyPatches
                                 thing = thing3;
                             }
 
-                            //Support for Rimfrige
+                            //Support for Rimfridge
                             if (rimFridgeCache != null)
                             {
                                 bool isfc = (bool)ProjectRimFactory_ModComponent.ModSupport_RrimFridge_HasFridgeAt.Invoke(rimFridgeCache, new object[] { (object)c });
